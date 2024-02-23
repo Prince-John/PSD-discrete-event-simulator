@@ -133,12 +133,12 @@ def main():
         # Track data for analysis:
         data.append({"true_type": particle_type, "predicted_type": predicted_type, "features": features})
     
-    # Feature extraction function (example):
+    # Feature extraction function:
     def extract_features(signal):
-        rise_time = ...  # feature extraction logic
+        rise_time = ...  
         decay_time = ...
         area = ...
-        # Extract other relevant features
+        ...
         return [rise_time, decay_time, area, ...]
 
     # PSD model 
