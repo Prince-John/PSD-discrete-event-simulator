@@ -21,7 +21,7 @@ def ping_pong_integrator(env, message, delta):
     yield env.timeout(delta)
     print(f"Time {env.now}: Edge {message.data['edge']} of Wave {message.data['id']} processed.")
     #message.event.succeed()  # Signal that the message has been processed
-    env.process(ring_buffer_process(env, message, 5, 0.1))
+    env.process(ring_buffer_process(env, message, 3, 1))
 
 
 if __name__ == '__main__':

@@ -6,9 +6,12 @@ import numpy as np
 def sample_and_hold_unit(env, sample_length, unit_index, debug=False):
     """
     A simple Sample and Hold unit simulation.
+    NOTE:  if the `sample_length` is shorter than the integration delay this model fails.
+    Currently, the propagation through each S&H is what simulates the integrator sampling things.
+
 
     :param env: simpy environment
-    :param sample_length: amount of time taken for the sample
+    :param sample_length: amount of time taken for the sample, this is depended on the integrator delay.
     :param unit_index: accounting variable, used to show where in the chain of S&H units is this located.
     :param debug: Boolean flag for printing debug messages, default = `False`
     :return:

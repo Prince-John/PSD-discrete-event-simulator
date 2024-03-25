@@ -15,7 +15,7 @@ def ring_buffer_process(env, message, buffer_length, sample_length):
 
 if __name__ == '__main__':
     # Simulation parameters
-    period = 5  # Period of the square wave
+    period = 10  # Period of the square wave
     duration = 30  # Total duration of the simulation
     delta = 1  # Processing time for ping_pong Integrator
     # Setup the simulation
