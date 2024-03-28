@@ -4,7 +4,7 @@ import numpy as np
 import sklearn
 from sklearn.neural_network import MLPClassifier
 
-particle = [gamma, neutron]
+# particle = [gamma, neutron]
 
 # simulate the interaction of a particle with an organic scintillator and emission of photons
 def scintillator(particle_type, energy):
@@ -41,7 +41,7 @@ def scintillator(particle_type, energy):
         photons = []
         for wavelength, intensity in zip(wavelengths, intensities):
             arrival_time = -np.log(random.random()) / decay_constant
-            photons.append({"wavelength": wavelength, "intensity": intensity, "arrival_time": arrival_time})
+            photons.append({"arrival_time": arrival_time})
     
         #return list of emitted photons and properties as a dictionary
         return photons
@@ -51,7 +51,7 @@ def scintillator(particle_type, energy):
 
 
 # simulate the response of a photomultiplier tube to a list of photons
-def photomultiplier(arrival_time, wavelength, energy):
+def photomultiplier(arrival_time):
     # Define PMT sensitivity curve 
     sensitivity = np.interp(np.linspace(300, 800, 1000), [0.1, 0.5, 1.0, 0.8, 0.2], np.linspace(300, 800, 1000))
 
@@ -60,8 +60,6 @@ def photomultiplier(arrival_time, wavelength, energy):
 
     # Iterate over each photon
     for photon in photons:
-        wavelength = photon["wavelength"]
-        intensity = photon["intensity"]
         arrival_time = photon["arrival_time"]
 
     # Convert arrival time to index for signal array
