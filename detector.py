@@ -1,157 +1,120 @@
 import simpy
 import random
 import numpy as np
-import sklearn
-from sklearn.neural_network import MLPClassifier
-
-# particle = [gamma, neutron]
-
-# simulate the interaction of a particle with an organic scintillator and emission of photons
-def scintillator(particle_type, energy):
-
-    # Define interaction probability based on particle type and energy
-    if particle_type == "gamma":
-        interaction_prob = 0.9 * np.exp(-energy / 0.5)
-    elif particle_type == "neutron":
-        interaction_prob = 0.5 * np.exp(-energy / 1.0)
-    else:
-        raise ValueError("Invalid particle type")
-    
-    # Check if interaction occurs
-    if random.random() < interaction_prob:
-        # Define decay constant based on particle type 
-        if particle_type == "gamma":
-            decay_constant = 1e7  # Hz
-        elif particle_type == "neutron":
-            decay_constant = 5e6  # Hz
-        else:
-            raise ValueError("Invalid particle type")
-
-        # Define emission spectrum based on particle type 
-        if particle_type == "gamma":
-            wavelengths = np.random.choice([400, 450, 500], size=10, p=[0.3, 0.5, 0.2])  # nm
-            intensities = np.random.uniform(0.5, 1.0, size=10)
-        elif particle_type == "neutron":
-            wavelengths = np.random.choice([600, 650, 700], size=5, p=[0.2, 0.6, 0.2])  # nm
-            intensities = np.random.uniform(0.1, 0.3, size=5)
-        else:
-            raise ValueError("Invalid particle type")
-
-        # Generate photons with random arrival times based on exponential decay
-        photons = []
-        for wavelength, intensity in zip(wavelengths, intensities):
-            arrival_time = -np.log(random.random()) / decay_constant
-            photons.append({"arrival_time": arrival_time})
-    
-        #return list of emitted photons and properties as a dictionary
-        return photons
-
-    else:
-        return []  # No interaction, return empty list
 
 
-# simulate the response of a photomultiplier tube to a list of photons
-def photomultiplier(arrival_time):
-    # Define PMT sensitivity curve 
-    sensitivity = np.interp(np.linspace(300, 800, 1000), [0.1, 0.5, 1.0, 0.8, 0.2], np.linspace(300, 800, 1000))
-
-    # Create empty signal array
-    signal = np.zeros(1000)  # Adjust time resolution based on your needs
-
-    # Iterate over each photon
-    for photon in photons:
-        arrival_time = photon["arrival_time"]
-
-    # Convert arrival time to index for signal array
-    index = int(arrival_time * signal.size)
-
-    # Apply PMT sensitivity and intensity
-    response = intensity * sensitivity[wavelength]
-
-    # Add response to signal, considering time resolution
-    signal[max(0, index - 1):min(index + 2, signal.size)] += response
-
-    # Add noise 
-    signal += np.random.normal(0, 0.01, signal.size)
-
-    # the simulated voltage over time (as a numpy array)
-    return signal
+# Define simulation constants (adjust these values as needed)
+PERIOD = 10  # ns (Time between particle interactions)
+DURATION = 1000  # ns (Total simulation duration)
+SCINTILLATION_YIELD = 10000  # Average photons per event (lambda for Poisson distribution)
+EMISSION_TIME_CONSTANT = 10  # ns (exponential decay for prompt photons)
 
 
-def preamp(signal):
-    # Apply gain 
+def scintillator(env):
+    """
+    Simulates photon generation in the scintillator using Poisson distribution.
+
+    Args:
+        env (simpy.Environment): SimPy environment object
+
+    Yields:
+        list: List of dictionaries containing photon information
+    """
+
+    # Generate number of photons based on Poisson distribution
+    num_photons = np.random.poisson(SCINTILLATION_YIELD)
+
+    photons = []
+    for _ in range(num_photons):
+        # Simulate prompt photon emission time (exponential decay)
+        emission_time = yield env.timeout(np.random.exponential(EMISSION_TIME_CONSTANT))
+
+        # Add information for each photon
+        photon = {"arrival_time": emission_time, "wavelength": random.uniform(400, 500)}  # Example wavelength range
+        photons.append(photon)
+
+    yield env.timeout(0)  # Optional delay to simulate processing time
+    return photons
+
+
+def photomultiplier(env, arrival_time):
+    """
+    Simulates photomultiplier tube (PMT) response to photons.
+
+    Args:
+        env (simpy.Environment): SimPy environment object
+        arrival_time (list): List of arrival times for photons
+
+    Yields:
+        list: List of timestamps for detected photons or None
+    """
+
+    detected_photons = []
+    # Simulate detection probability (adjust this value)
+    detection_probability = 0.8
+
+    for time in arrival_time:
+        if random.random() < detection_probability:
+            detected_photons.append(env.timeout(time))  # Yield with photon arrival time
+
+    yield env.timeout(0)  # Optional delay to simulate processing time
+    return detected_photons if detected_photons else None
+
+
+def preamp(env, signal):
+    """
+    Simulates preamplifier amplification and noise addition.
+
+    Args:
+        env (simpy.Environment): SimPy environment object
+        signal (list): List of timestamps for detected photons (from PMT)
+
+    Yields:
+        list: Amplified and noisy signal
+    """
+
+    amplified_signal = []
+    # Simulate amplification gain (adjust this value)
     gain = 100
 
-    preamp_signal = signal * gain
+    # Add noise (example: random jitter)
+    jitter = np.random.normal(scale=0.5, size=len(signal))  # Adjust noise parameters
 
-    # Apply some filtering 
-    preamp_signal = np.convolve(preamp_signal, np.ones(5) / 5, mode='same')
+    for index, time in enumerate(signal):
+        # Simulate processing time for each photon
+        yield env.timeout(0.1)  # Adjust processing time
 
-    # Adding noise 
-    preamp_signal += np.random.normal(0, 0.02, signal.size)
+        # Apply gain and jitter
+        amplified_signal.append(time * gain + jitter[index])
 
-    # pre-amplified and filtered signal
-    return preamp_signal
+    yield env.timeout(0)  # Optional delay to simulate overall processing time
+    return amplified_signal
 
 
-# use previous three functions to perform PSD
 def main():
-    # Simulation parameters
-    particle_rate = 1000 # Hz
-    simulation_time = 10 # seconds
-    energy_range = (0.5, 2.0) # MeV
+    """
+    Main function to run the simulation.
+    """
 
-    # Initialize SimPy environment
     env = simpy.Environment()
 
-    # Define particle arrival process
-    def particle_arrivals(env):
-        while True:
-            particle_type = random.choice(["gamma", "neutron"])
-            energy = random.uniform(*energy_range)
-            env.process(scintillation_process(env, particle_type, energy))
-            yield env.timeout(1 / particle_rate)
-    
-    env.process(particle_arrivals(env))
+    # Schedule particle interactions with the period
+    while True:
+        yield env.timeout(PERIOD)
+        # Simulate particle interaction and detector response (replace with your logic)
+        photons = scintillator(env)
+        detected_photons = photomultiplier(env, [p["arrival_time"] for p in photons])
+        if detected_photons:
+            amplified_signal = preamp(env, detected_photons)
+            # Process and analyze the amplified signal (replace with your analysis logic)
+            print("Particle detected! Analyzing signal...")
 
-    def scintillation_process(env, particle_type, energy):
-        photons = scintillator(particle_type, energy)
-        if photons:
-            signal = photomultiplier(photons)
+        # Check if simulation duration is exceeded
+        if env.now > DURATION:
+            break
 
-        # Optional preamp:
-        preprocessed_signal = preamp(signal)
-
-        # Feature extraction from preprocessed signal
-        features = extract_features(signal)  # Implement your feature extraction logic here
-
-        # PSD using trained model:
-        predicted_type = psd_model.predict([features])[0]  # Replace with your PSD model
-
-        # Track data for analysis:
-        data.append({"true_type": particle_type, "predicted_type": predicted_type, "features": features})
-    
-    # Feature extraction function:
-    def extract_features(signal):
-        rise_time = ...  
-        decay_time = ...
-        area = ...
-        ...
-        return [rise_time, decay_time, area, ...]
-
-    # PSD model 
-    # Will load PSD model here
-    psd_model = MLPClassifier(...)
-
-    # Data collection list
-    data = []
-
-    # Start simulation and collect data
-    env.run(until=simulation_time)
-
-    # Analyze collected data:
-    analyze_data(data)  # still have to define analyze_data 
+    env.run()
 
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
