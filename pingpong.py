@@ -17,11 +17,12 @@ def square_wave_generator(env, period, duration, integrator_process):
         yield event  # Wait for the integrator to process the falling edge
 
 
-def ping_pong_integrator(env, message, delta):
+def ping_pong_integrator(env, message, delta, size, RB_Length,Sample_Length):
+    size = size # Not sure how resorces work. But total size may be able to be determined by size*number of pingpong integrators
     yield env.timeout(delta)
     print(f"Time {env.now}: Edge {message.data['edge']} of Wave {message.data['id']} processed.")
     #message.event.succeed()  # Signal that the message has been processed
-    env.process(ring_buffer_process(env, message, 3, 1))
+    env.process(ring_buffer_process(env, message, RB_Length, Sample_Length))# Change this to add parameters that can be inputter into the ping pon integrator.
 
 
 if __name__ == '__main__':
