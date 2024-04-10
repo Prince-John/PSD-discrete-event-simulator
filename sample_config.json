@@ -1,0 +1,13 @@
+{
+    "sample_length": 94,
+    "ring_buffer_length": 92,
+    "ring_buffer_size": 66,
+    "ring_buffer_delay": 49,
+    "integrator_delay": 10,
+    "integrator_size": 3,
+    "sh_delay": 90,
+    "sh_size": 65,
+    "poisson_delta": 0.8252310978614121,
+    "num_channels": 3,
+    "long_short_ratio": 0.8876607760407059
+}
