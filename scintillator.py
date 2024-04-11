@@ -48,7 +48,6 @@ class Scintillator:
         env.process(self.generate_events())
 
 
-# temporarily in place of integrator
 def integrator_process(env, event_info):
     # print details of event detected
     print(f"Event {event_info['event_number']} detected in scintillator {event_info['scintillator']} with length {event_info['event_length']:.2f}")
