@@ -1,3 +1,6 @@
+import simpy
+import numpy as np
+
 class Scintillator:
     def __init__(self, env, mean_arrival_time, scintillator_delay, mean_event_length, num_events, scintillator_index):
         self.env = env
@@ -6,7 +9,6 @@ class Scintillator:
         self.mean_event_length = mean_event_length # mean length of a single event
         self.num_events = num_events # total number of synthetic events 
         self.scintillator_index = scintillator_index # index of scintillator
-    
 
     def generate_timing(self):
         """
@@ -24,7 +26,7 @@ class Scintillator:
         
         return arrival_times, event_lengths
 
-    def generate_events():
+    def generate_events(self):
         """
         1. Invoke a generate_timing() -> iterate through both arrays concurrently
         2. Look at arrival time, generate simpy event -> within event, message body: event #, scintillator #, event length
@@ -39,19 +41,30 @@ class Scintillator:
             # Schedule event with arrival time + scintillator delay
             yield self.env.timeout(arrival_times[i] + self.scintillator_delay)
             # Send event to integrator process
-            env.process(self.integrator_process(env, event_info))
+            self.env.process(self.integrator_process(event_info))
 
-    def start_scintillator():
+    def start_scintillator(self):
         """
         Starts the event generation process for the scintillator.
         """
-        env.process(self.generate_events())
+        self.env.process(self.generate_events())
 
+    def integrator_process(self, event_info):
+        try:
+            # print details of event detected
+            print(f"Event {event_info['event_number']} detected in scintillator {event_info['scintillator']} with length {event_info['event_length']:.2f}")
 
-def integrator_process(env, event_info):
-    # print details of event detected
-    print(f"Event {event_info['event_number']} detected in scintillator {event_info['scintillator']} with length {event_info['event_length']:.2f}")
+            yield self.env.timeout(1)  
+        except Exception as e:
+            print(f"An error occurred: {e}") 
+
     
-    yield env.timeout(1)  
+# Setup the simulation
+env = simpy.Environment()
 
-    
+# Create a scintillator object
+scintillator = Scintillator(env, 2, 0.5, 3, 15, 8)
+
+# Start the simulation
+scintillator.start_scintillator()
+env.run()
