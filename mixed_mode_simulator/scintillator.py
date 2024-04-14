@@ -1,11 +1,12 @@
 import simpy
 import numpy as np
 from events import DetectionEvent
+from integrator import Integrator
 
 
 class Scintillator:
     def __init__(self, env, mean_arrival_time, scintillator_delay, mean_event_length, num_events, scintillator_index,
-                 integrator):
+                 integrator: Integrator):
         self.env = env
         self.mean_arrival_time = mean_arrival_time  # mean arrival time between any two events
         self.scintillator_delay = scintillator_delay  # time taken to notice event arrival in scintillator
