@@ -22,7 +22,7 @@ class Scintillator:
         arrival_times = np.random.poisson(self.mean_arrival_time, size=self.num_events)
 
         # Generate event lengths from normal distribution
-        event_lengths = np.random.normal(self.mean_event_length, scale=self.mean_event_length / 2, size=self.num_events)  # Adjust scale for desired standard deviation
+        event_lengths = np.random.normal(self.mean_event_length, scale=self.mean_event_length, size=self.num_events)  # Adjust scale for desired standard deviation
         
         return arrival_times, event_lengths
 
@@ -58,13 +58,13 @@ class Scintillator:
         except Exception as e:
             print(f"An error occurred: {e}") 
 
-    
-# Setup the simulation
-env = simpy.Environment()
+if __name__ == '__main__':
+    # Setup the simulation
+    env = simpy.Environment()
 
-# Create a scintillator object
-scintillator = Scintillator(env, 2, 0.5, 3, 15, 8)
+    # Create a scintillator object
+    scintillator = Scintillator(env, 2, 90, 3, 10, 8)
 
-# Start the simulation
-scintillator.start_scintillator()
-env.run()
+    # Start the simulation
+    scintillator.start_scintillator()
+    env.run()
