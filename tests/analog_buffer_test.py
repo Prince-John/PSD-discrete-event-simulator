@@ -9,7 +9,7 @@ class MyTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.env = simpy.Environment()
         self.buffer_length = 5
-        self.test_buffer = sample_and_hold.AnalogBuffer(self.env, 1, self.buffer_length, 0, debug=True)
+        self.test_buffer = sample_and_hold.AnalogBuffer(self.env, 1, self.buffer_length, 0, debug=False)
         self.test_events = [events.DownstreamEvent(simpy.Event(self.env), {"event_number": 1, "scintillator": 1,
                                                                            "event_length": 1}, {"sample_index": i})
                             for i in range(10)]
@@ -19,12 +19,12 @@ class MyTestCase(unittest.TestCase):
         self.env.run()
         self.assertEqual(self.env.now, self.buffer_length)
 
-    def multiple_event_helper(self, events):
+    def multiple_event_helper(self, num_events):
         """
         Helper generator function for multi event test
         :return:
         """
-        for i in range(events):
+        for i in range(num_events):
             self.env.process(self.test_buffer.buffer(self.test_events[i]))
             yield self.env.timeout(1)
 

@@ -44,11 +44,27 @@ class AnalogBuffer:
                   f'{event.event_info["sample_index"]} finished processing '
                   f'at time {self.env.now}.')
 
+    def remove_from_buffer(self, event: DownstreamEvent, mux):
+        """
+        This processes the removal and chaining of an event from a buffer to the next analog multiplexer. The
+        AMUX will deal with the decision to either drop or accept this event. This function always offloads the event
+        and keeps count of number of events removed.
+
+        :param event: DownstreamEvent object that carries event information.
+        :param mux: Multiplexer object that is used to chain the event.
+        :return: None
+        """
+        pass
+
     def buffer(self, event: DownstreamEvent):
         """
         Creates an analog buffer by chaining sample and hold units.
 
+        :param event: DownstreamEvent object that carries event information.
+        :return: None
         """
         for i in range(self.buffer_length):
             yield self.env.process(self.sample_and_hold_unit(event, i))
             yield self.env.timeout(self.chain_delay)  # Adding chaining delay overhead
+
+        self.remove_from_buffer(event, None)
