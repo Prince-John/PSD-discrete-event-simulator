@@ -7,7 +7,7 @@
 # debug statements to print subsequent success messages
 # dump all success full events at very end
 
-# function that takes downstream event, marks as successful, record if it receives detection event
+# function that takes downstream event, marks as successful, record if it receives detection even
 
 class IdealDigitizer:
   """
