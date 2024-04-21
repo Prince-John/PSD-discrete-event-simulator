@@ -1,0 +1,16 @@
+time,event,unit_index,message
+0,start,0,Starting processing at time 0.
+1,end,0,Completed processing at time 1.
+1,chain_delay,0,Chaining delay introduced after s&h unit 0 at time 1.
+1.1,start,1,Starting processing at time 1.1.
+2.1,end,1,Completed processing at time 2.1.
+2.1,chain_delay,1,Chaining delay introduced after s&h unit 1 at time 2.1.
+2.2,start,2,Starting processing at time 2.2.
+3.2,end,2,Completed processing at time 3.2.
+3.2,chain_delay,2,Chaining delay introduced after s&h unit 2 at time 3.2.
+3.3000000000000003,start,3,Starting processing at time 3.3000000000000003.
+4.300000000000001,end,3,Completed processing at time 4.300000000000001.
+4.300000000000001,chain_delay,3,Chaining delay introduced after s&h unit 3 at time 4.300000000000001.
+4.4,start,4,Starting processing at time 4.4.
+5.4,end,4,Completed processing at time 5.4.
+5.4,chain_delay,4,Chaining delay introduced after s&h unit 4 at time 5.4.
