@@ -38,8 +38,8 @@ class IdealDigitizer:
     for event in self.successful_events:
       print(event)
 
-# Example usage
-digitizer = IdealDigitizer()
-digitizer.process_event("Data sample 1")
-digitizer.process_event("Detection event")
-digitizer.dump_events()
+if __name__ == '__main__':
+  digitizer = IdealDigitizer()
+  digitizer.process_event("Data sample 1")
+  digitizer.process_event("Detection event")
+  digitizer.dump_events()
