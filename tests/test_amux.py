@@ -1,7 +1,8 @@
 from unittest import TestCase
-from ..mixed_mode_simulator import sample_and_hold
-from ..mixed_mode_simulator import events
-from ..mixed_mode_simulator import amux
+from mixed_mode_simulator import sample_and_hold
+from mixed_mode_simulator import events
+from mixed_mode_simulator import amux
+from mixed_mode_simulator import event_logger
 import simpy
 import numpy as np
 
@@ -18,7 +19,9 @@ class TestAMUX(TestCase):
                                                                            "event_length": 1}, {"sample_index": i})
                             for i in range(10)]
         self.amux_delay = 0
-        self.mux = amux.AMUX(self.env, 3, self.buffers, self.amux_delay, debug=True)
+        self.amuxID = 0
+        self.Logger = event_logger.EventLogger('amux_testlog',self.env)
+        self.mux = amux.AMUX(self.env, 3, self.buffers, self.amux_delay, self.Logger,self.amuxID,  debug=True)
         self.ring = [sample_and_hold.AnalogBuffer(self.env, i, "ring", 1, self.buffer_length, 0, debug=True) for i
                      in range(3)]
         for buf in self.ring:
