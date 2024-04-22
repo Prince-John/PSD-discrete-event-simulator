@@ -10,6 +10,9 @@ class AMUX:
         Downstream buffers are allocated until they are present in the FIFO. If FIFO is empty the entire event is
         dropped.
 
+        NOTE: Assumption is that no detection event is less than two downstream events long. If that happens, reevaluate
+        simulation parameters.
+
         :param amux_delay: Constant delay incurred due to switching costs, default = 0.
         :param env: Simpy Environment
         :param channels: number of upstream channels
@@ -34,8 +37,10 @@ class AMUX:
     def acquire_buffer(self, upstream_channel: int) -> AnalogBuffer:
 
         if len(self.downstream_buffer_fifo.items) > 0:
-            buffer = self.downstream_buffer_fifo.get()
+            buffer = yield self.downstream_buffer_fifo.get()
+
             if self.debug:
+                print(type(buffer))
                 print(f'Downstream buffer {buffer.buffer_index} '
                       f'available for upstream channel {upstream_channel} and acquired at {self.env.now}')
             return buffer
@@ -57,25 +62,30 @@ class AMUX:
             print(f'Event {event.detection_event_info["event_number"]}, sample number '
                   f'{event.event_info["sample_index"]} '
                   f'dropped. No downstream channels available')
-        event.event.fail()
+        event.event.fail(Exception(f'Event {event.detection_event_info["event_number"]}, sample number '
+                  f'{event.event_info["sample_index"]} '
+                  f'dropped. No downstream channels available'))
 
     def entry_point(self, channel_index: int, event: DownstreamEvent):
 
-        print("Got an event")
         if event.event_info["sample_index"] == 0:
             yield self.env.timeout(self.amux_delay)
             try:
-                buffer = self.acquire_buffer(channel_index)
+                buffer = yield from self.acquire_buffer(channel_index)
                 self.active_channels[channel_index] = {"buffer": buffer}
+                yield from self.accept_event(event, channel_index)
             except BufferError as e:
                 print("No buffers available, event dropped")
         elif channel_index in self.active_channels:
             """
             If from active channel, pass on to next downstream buffer.
             """
-            yield self.accept_event(event, channel_index)
+            self.accept_event(event, channel_index)
             if event.final_event:
+                if self.debug:
+                    print(f'Downstream buffer {self.active_channels[channel_index]["buffer"].buffer_index} released at {self.env.now}')
                 self.release_buffer(channel_index)
+
         else:
             """
             Not in active channel. Event is dropped. 
