@@ -2,11 +2,13 @@ import simpy
 import itertools
 import numpy as np
 from .events import *
+from .amux import AMUX
 
 
 class AnalogBuffer:
 
-    def __init__(self, env, buffer_index, buffer_location, sample_length, buffer_length, chain_delay, debug=False):
+    def __init__(self, env, buffer_index, buffer_location, sample_length, buffer_length, chain_delay, amux: AMUX,
+                 debug=False):
         """
         Creates an analog buffer with a parameterizable number of individual memory units and sample lengths.
         This class can be used to create both the long tail buffers and initial ring buffers.
@@ -17,9 +19,11 @@ class AnalogBuffer:
         :param buffer_length: number of chained S&H units
         :param sample_length: amount of time taken per sample unit
         :param chain_delay: parameterized delay associated with parasitics of chaining S&H units
+        :param amux: Downstream Amux object that this is connected to, all buffers in one layer should share this object.
         :param debug: Boolean flag for printing debug messages, default = `False`
 
         """
+        self.amux = amux
         self.buffer_index = buffer_index
         self.buffer_location = buffer_location
         self.env = env
@@ -48,7 +52,7 @@ class AnalogBuffer:
                   f'{event.event_info["sample_index"]} finished processing '
                   f'at time {self.env.now}.')
 
-    def remove_from_buffer(self, event: DownstreamEvent, mux):
+    def remove_from_buffer(self, event: DownstreamEvent, mux: AMUX):
         """
         This processes the removal and chaining of an event from a buffer to the next analog multiplexer. The
         AMUX will deal with the decision to either drop or accept this event. This function always offloads the event
@@ -58,6 +62,7 @@ class AnalogBuffer:
         :param mux: Multiplexer object that is used to chain the event.
         :return: None
         """
+        yield self.env.process(mux.entry_point(self.buffer_index), event)
         pass
 
     def buffer(self, event: DownstreamEvent):
@@ -71,6 +76,4 @@ class AnalogBuffer:
             yield self.env.process(self.sample_and_hold_unit(event, i))
             yield self.env.timeout(self.chain_delay)  # Adding chaining delay overhead
 
-        self.remove_from_buffer(event, None)
-
-
+        self.remove_from_buffer(event, self.amux)

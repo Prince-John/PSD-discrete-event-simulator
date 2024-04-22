@@ -2,9 +2,6 @@ import simpy
 from .events import *
 from .sample_and_hold import AnalogBuffer
 
-"""neet to implement a counter for keeping track which tail buffer is allocated for which channel. and how to release 
-the tail buffers."""
-
 
 class AMUX:
     def __init__(self, env: simpy.Environment, channels: int, downstream_buffers: list, amux_delay=0, debug=False):
@@ -16,7 +13,7 @@ class AMUX:
         :param amux_delay: Constant delay incurred due to switching costs, default = 0.
         :param env: Simpy Environment
         :param channels: number of upstream channels
-        :param downstream_buffers: List of Buffer objects that are downstream
+        :param downstream_buffers: List of Buffer objects that are downstream, digitizers emulate a single buffer object
         :param debug: Debug flag, default False
         """
         self.amux_delay = amux_delay
