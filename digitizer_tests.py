@@ -8,7 +8,7 @@ class DigitizerTestCase(unittest.TestCase):
 
   def test_single_event(self):
     """
-    Tests processing a single event.
+    Checks if a single event is processed correctly and stored in the successful_events list.
     """
     test_event = "Test data"
     self.digitizer.process_event(test_event)
@@ -17,7 +17,7 @@ class DigitizerTestCase(unittest.TestCase):
 
   def test_multiple_events(self):
     """
-    Tests processing multiple events.
+    Tests processing multiple events and verifies their presence in the event list.
     """
     events = ["Event 1", "Event 2", "Event 3"]
     for event in events:
@@ -28,7 +28,7 @@ class DigitizerTestCase(unittest.TestCase):
 
   def test_dump_events(self):
     """
-    Tests the dump_events method.
+    Tests the dump_events method by capturing the printed output and verifying it contains the processed event information.
     """
     test_event = "Sample data"
     self.digitizer.process_event(test_event)
