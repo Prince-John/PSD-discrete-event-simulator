@@ -1,6 +1,9 @@
 import unittest
-from ..mixed_mode_simulator import IdealDigitizer
+from mixed_mode_simulator.digitizer import IdealDigitizer
 import simpy
+from io import StringIO
+import sys
+
 
 class DigitizerTestCase(unittest.TestCase):
 
