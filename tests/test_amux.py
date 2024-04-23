@@ -86,7 +86,7 @@ class TestAMUX(TestCase):
         ring = [sample_and_hold.AnalogBuffer(self.env, i, "ring", 1, 4, 0, debug=True) for i
                 in range(3)]
 
-        tail_buffer = sample_and_hold.AnalogBuffer(self.env, 0, "tail", 1, 100, 0, debug=True)
+        tail_buffer = sample_and_hold.AnalogBuffer(self.env, 0, "tail", 1, 3, 0, debug=True)
         mux = amux.AMUX(self.env, 2, [tail_buffer], 0, debug=True)
         for buf in ring:
             buf.set_amux(mux)
@@ -100,13 +100,13 @@ class TestAMUX(TestCase):
 
         for buf in ring:
             print(f'for ring {buf.buffer_index} AMUX is {buf.amux}')
-        self.env.process(ring[1].buffer(test_events_0[1]))
+        self.env.process(ring[0].buffer(test_events_0[1]))
         yield self.env.timeout(1)
-        self.env.process(ring[1].buffer(test_events_1[1]))
+        self.env.process(ring[0].buffer(test_events_1[1]))
         yield self.env.timeout(5)
-        self.env.process(ring[0].buffer(test_events_0[0]))
+        self.env.process(ring[1].buffer(test_events_0[0]))
         yield self.env.timeout(1)
-        self.env.process(ring[0].buffer(test_events_1[0]))
+        self.env.process(ring[1].buffer(test_events_1[0]))
 
     def test_release(self):
         self.env = simpy.Environment()

@@ -1,5 +1,3 @@
-import simpy
-import itertools
 from message import Message
 from single_channel_test import *
 

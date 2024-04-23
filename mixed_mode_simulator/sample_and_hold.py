@@ -70,11 +70,10 @@ class AnalogBuffer:
         if self.debug:
             print(f"At remove from buffer @ {self.buffer_location}:{self.buffer_index}")
         if mux is None:
-            event.event.fail(Exception(
-                f"No downstream channels available at buffer located at {self.buffer_location}:{self.buffer_index}"))
+            # event.event.fail(Exception(
+            #     f"No downstream channels available at buffer located at {self.buffer_location}:{self.buffer_index}"))
             if self.debug:
                 print("Event failed, no downstream mux found!")
-            return
         else:
             yield self.env.process(mux.entry_point(self.buffer_index, event))
 
@@ -94,6 +93,9 @@ class AnalogBuffer:
         if self.debug:
             print(f"call to remove from buf @ {self.buffer_location}:{self.buffer_index}, amux is {self.amux}")
         try:
-            yield self.env.process(self.remove_from_buffer(event, self.amux))
+            process_event = self.env.process(self.remove_from_buffer(event, self.amux))
+            yield process_event
+            if not process_event.ok:
+                raise process_event.value  # Manually raise the exception if the process failed.
         except Exception as e:
             print(f"Caught failed event {e}, simulation continues")
