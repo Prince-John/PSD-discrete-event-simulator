@@ -16,7 +16,7 @@ class TestBuffer(unittest.TestCase):
                             for i in range(10)]
 
     def test_single_event(self):
-        self.env.process(self.test_buffer.buffer(self.test_events[0]))
+        self.env.process(self.test_buffer.buffer_in(self.test_events[0]))
         self.env.run()
         self.assertEqual(self.env.now, self.buffer_length)
 
@@ -26,7 +26,7 @@ class TestBuffer(unittest.TestCase):
         :return:
         """
         for i in range(num_events):
-            self.env.process(self.test_buffer.buffer(self.test_events[i]))
+            self.env.process(self.test_buffer.buffer_in(self.test_events[i]))
             yield self.env.timeout(1)
 
     def test_multiple_events(self):

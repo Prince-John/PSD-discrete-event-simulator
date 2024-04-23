@@ -34,7 +34,7 @@ class TestAMUX(TestCase):
         test_event = events.DownstreamEvent(simpy.Event(self.env), {"event_number": 1, "scintillator": 1,
                                                                     "event_length": 1}, {"sample_index": 0})
 
-        self.env.process(ring_buffer.buffer(test_event))
+        self.env.process(ring_buffer.buffer_in(test_event))
         with self.assertRaises(Exception):
             self.env.run()
 
@@ -70,9 +70,9 @@ class TestAMUX(TestCase):
                                                                       "event_length": 1}, {"sample_index": 0})
                        for i in range(4)]
 
-        self.env.process(self.ring[1].buffer(test_events[1]))
+        self.env.process(self.ring[1].buffer_in(test_events[1]))
         yield self.env.timeout(0.5)
-        self.env.process(self.ring[0].buffer(test_events[0]))
+        self.env.process(self.ring[0].buffer_in(test_events[0]))
 
     def test_over_allocation(self):
 
@@ -100,13 +100,13 @@ class TestAMUX(TestCase):
 
         for buf in ring:
             print(f'for ring {buf.buffer_index} AMUX is {buf.amux}')
-        self.env.process(ring[0].buffer(test_events_0[1]))
+        self.env.process(ring[0].buffer_in(test_events_0[1]))
         yield self.env.timeout(1)
-        self.env.process(ring[0].buffer(test_events_1[1]))
+        self.env.process(ring[0].buffer_in(test_events_1[1]))
         yield self.env.timeout(5)
-        self.env.process(ring[1].buffer(test_events_0[0]))
+        self.env.process(ring[1].buffer_in(test_events_0[0]))
         yield self.env.timeout(1)
-        self.env.process(ring[1].buffer(test_events_1[0]))
+        self.env.process(ring[1].buffer_in(test_events_1[0]))
 
     def test_release(self):
         self.env = simpy.Environment()

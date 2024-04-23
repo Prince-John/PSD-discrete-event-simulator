@@ -1,6 +1,6 @@
 {
   "num_SnH_ring_buff": 4,
-  "num_channels": 8,
+  "num_channels": 2,
   "num_SnH_long_buff": 8,
   "num_long_buffs": 2,
   "num_of_digitizers": 2,
@@ -14,5 +14,5 @@
   "scintillator_delay": 0.01,
   "min_time_over_threshold": 1,
   "max_time_over_threshold": 100,
-  "num_of_events": 100
+  "num_of_events": 10
 }

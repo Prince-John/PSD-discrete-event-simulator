@@ -1,7 +1,7 @@
 import argparse
 import json
 import sys
-
+from datetime import datetime
 import simpy
 
 import digitizer
@@ -40,6 +40,8 @@ parser.add_argument('--num_of_events', type=int, help='Number of simulated event
 
 # Optional: Configuration file for overriding command line arguments
 parser.add_argument('--config_file', type=str, help='Path to JSON config file', default="default_config.json")
+parser.add_argument('--debug_log', type=bool, help='Generate and dump detailed debug logs to a debug_log.txt',
+                    default=False)
 
 # Parse the arguments
 args = parser.parse_args()
@@ -72,33 +74,46 @@ def set_amux_for_all(mux: amux.AMUX, buffers: list) -> None:
 
 
 if __name__ == "__main__":
+    DEBUG = args.debug_log
+
     print("Simulation Setup Variables:")
     print(json.dumps(config, indent=4))
+
+    if DEBUG:
+        sys.stdout = open('data/debug_log.txt', 'w')
+        print("Simulation Setup Variables:")
+        print(json.dumps(config, indent=4))
+        print("*"*30, f'DEBUG LOG generated at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', "*"*30)
+
 
     env = simpy.Environment()
     logger = None
     digitizers = [digitizer.IdealDigitizer(env, logger, i) for i in range(args.num_of_digitizers)]
-    amux1 = amux.AMUX(env, args.num_long_buffs, digitizers, args.mux1_delay)
+    amux1 = amux.AMUX(env, args.num_long_buffs, digitizers, args.mux1_delay, debug=DEBUG)
     tail_buffers = [
         sample_and_hold.AnalogBuffer(env, buffer_index=i, buffer_location="tail", sample_length=args.long_SnH_delay,
-                                     buffer_length=args.num_SnH_long_buff, chain_delay=0) for i in
+                                     buffer_length=args.num_SnH_long_buff, chain_delay=0, debug=DEBUG) for i in
         range(args.num_long_buffs)]
     set_amux_for_all(amux1, tail_buffers)
-    amux0 = amux.AMUX(env, channels=args.num_channels, downstream_buffers=tail_buffers, amux_delay=args.mux0_delay)
+    amux0 = amux.AMUX(env, channels=args.num_channels, downstream_buffers=tail_buffers, amux_delay=args.mux0_delay,
+                      debug=DEBUG)
     ring_buffers = [
         sample_and_hold.AnalogBuffer(env, buffer_index=i, buffer_location="ring", sample_length=args.short_SnH_delay,
-                                     buffer_length=args.num_SnH_ring_buff, chain_delay=0) for i in
+                                     buffer_length=args.num_SnH_ring_buff, chain_delay=0, debug=DEBUG) for i in
         range(args.num_channels)]
     set_amux_for_all(amux0, ring_buffers)
     integrators = [
-        integrator.Integrator(env, ring_buffers[i], i, args.integrator_delay, sample_length=args.short_SnH_delay) for i
+        integrator.Integrator(env, ring_buffers[i], i, args.integrator_delay, sample_length=args.short_SnH_delay,
+                              debug=DEBUG) for i
         in range(args.num_channels)]
     detectors = [
         scintillator.Scintillator(env, args.mean_arrival_time, args.scintillator_delay, args.min_time_over_threshold,
-                                  args.max_time_over_threshold, args.num_of_events, i, integrators[i])
+                                  args.max_time_over_threshold, args.num_of_events, i, integrators[i], debug=DEBUG)
         for i in range(args.num_channels)]
 
     for detector in detectors:
         detector.start_scintillator()
 
     env.run()
+    if DEBUG:
+        sys.stdout.close()

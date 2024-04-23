@@ -40,8 +40,7 @@ class AMUX:
             buffer = yield self.downstream_buffer_fifo.get()
 
             if self.debug:
-                print(type(buffer))
-                print(f'Downstream buffer {buffer.buffer_index} '
+                print(f'{self.env.now:.3f}\tDownstream buffer {buffer.buffer_index} '
                       f'available for upstream channel {upstream_channel} and acquired at {self.env.now}')
             return buffer
         else:
@@ -55,11 +54,11 @@ class AMUX:
     def accept_event(self, event: DownstreamEvent, channel_index: int):
 
         downstream_buffer = self.active_channels[channel_index]["buffer"]
-        yield self.env.process(downstream_buffer.buffer(event))
+        yield self.env.process(downstream_buffer.buffer_in(event))
 
     def drop_event(self, event):
         if self.debug:
-            print(f'Event {event.detection_event_info["event_number"]}, sample number '
+            print(f'{self.env.now:.3f}\tEvent {event.detection_event_info["event_number"]}, sample number '
                   f'{event.event_info["sample_index"]} '
                   f'dropped. No downstream channels available')
         # #event.event.fail(Exception(f'Event {event.detection_event_info["event_number"]}, sample number '
@@ -83,7 +82,7 @@ class AMUX:
             self.accept_event(event, channel_index)
             if event.final_event:
                 if self.debug:
-                    print(f'Downstream buffer {self.active_channels[channel_index]["buffer"].buffer_index} released at {self.env.now}')
+                    print(f'{self.env.now:.3f}\tDownstream buffer {self.active_channels[channel_index]["buffer"].buffer_index} released at {self.env.now}')
                 self.release_buffer(channel_index)
 
         else:

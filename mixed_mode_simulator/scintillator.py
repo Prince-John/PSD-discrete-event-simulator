@@ -6,8 +6,9 @@ from integrator import Integrator
 
 class Scintillator:
     def __init__(self, env, mean_arrival_time, scintillator_delay, min_time_over_threshold, max_time_over_threshold,
-                 num_events, scintillator_index, integrator: Integrator):
+                 num_events, scintillator_index, integrator: Integrator, debug = False):
 
+        self.debug = debug
         self.env = env
         self.mean_arrival_time = mean_arrival_time  # mean arrival time between any two events
         self.scintillator_delay = scintillator_delay  # time taken to notice event arrival in scintillator
@@ -42,10 +43,14 @@ class Scintillator:
         
         """
         arrival_times, event_lengths = self.generate_timing()
+        if self.debug:
+            print(f'{self.env.now:.3f}\tFor Scintillator {self.scintillator_index}: Arrival times{arrival_times}, Event '
+                  f'Time over threshold {arrival_times}')
+
         for i in range(self.num_events):
             # Define event information
             new_event = DetectionEvent(simpy.Event(self.env),
-                                       {"event_number": i + 1, "scintillator": self.scintillator_index,
+                                       {"event_number": i, "scintillator": self.scintillator_index,
                                         "event_length": event_lengths[i]})
 
             # Schedule event with arrival time + scintillator delay

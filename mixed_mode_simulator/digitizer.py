@@ -16,7 +16,7 @@ class IdealDigitizer:
         self.logger = logger
         self.unitID = unitID  # Unique identifier for this digitizer
 
-    def process_event(self, downstream_event: DownstreamEvent, debug=True):
+    def buffer_in(self, downstream_event: DownstreamEvent, debug=True):
         """
         Processes a downstream event, marks it as successful, and logs the event.
         Args:
@@ -26,7 +26,7 @@ class IdealDigitizer:
         # Assume all events processed by this ideal digitizer are successful
         downstream_event.event.succeed()  # Mark the SimPy event as succeeded
         if debug:
-            print(f"Event successfully received: {downstream_event.detection_event_info}")  # Debug message
+            print(f"{self.env.now:.3f}\tEvent successfully received: {downstream_event.detection_event_info}")  # Debug message
 
         # Log the event processing success
         yield self.env.process(self.logger.log_event(

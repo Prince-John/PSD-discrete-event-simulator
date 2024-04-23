@@ -9,7 +9,7 @@ from sample_and_hold import AnalogBuffer
 class Integrator:
 
     def __init__(self, env: simpy.Environment, ring_buffer: AnalogBuffer, integrator_index: int, integrator_delay,
-                 sample_length):
+                 sample_length, debug=False):
         """
         Integrator model, creates an object to simulate the analog integrator delay that takes in an event from
         a detectors, reads the event length and dispatches `n` events downstream to the ring buffer.
@@ -21,13 +21,15 @@ class Integrator:
         :param integrator_delay: delay modeling the gate/discharge delays for the integrator
         :param sample_length: length of downstream S&H units, determines number of events dispatched by the integrator
         """
+        self.debug = debug
         self.ring_buffer = ring_buffer
         self.sample_length = sample_length
         self.integrator_delay = integrator_delay
         self.integrator_index = integrator_index
         self.env = env
+        self.downstream_events_created = 0
 
-    def process_event(self, detected_event: DetectionEvent, debug=False):
+    def process_event(self, detected_event: DetectionEvent):
         yield self.env.timeout(self.integrator_delay)
 
         event_length = detected_event.event_info["event_length"]
@@ -37,10 +39,11 @@ class Integrator:
             new_sample_event = DownstreamEvent(simpy.Event(self.env), detected_event.event_info,
                                                {"sample_index": downstream_event_index})
             yield self.env.timeout(self.sample_length)
-            yield self.env.process(self.ring_buffer.buffer(new_sample_event))
-
-            if debug:
+            if self.debug:
                 print(
-                    f'In Integrator {self.integrator_index} with processed sample {downstream_event_index} for event {detected_event.event_info["event_number"]}')
+                    f'{self.env.now:.3f}\tIn Integrator {self.integrator_index} with processed sample {downstream_event_index} for event {detected_event.event_info["event_number"]}')
 
-        detected_event.event.succeed(value=f'Detection Event {detected_event.event_info["event_number"]} completed')
+            self.downstream_events_created += 1
+            yield self.env.process(self.ring_buffer.buffer_in(new_sample_event))
+
+        # detected_event.event.succeed(value=f'Detection Event {detected_event.event_info["event_number"]} completed')
