@@ -44,16 +44,18 @@ class AnalogBuffer:
         :return: None
         """
         if self.debug:
-            print(f'At s&h unit {self.buffer_location}:{self.buffer_index}:{unit_index}, event {event.detection_event_info["event_number"]}, sample index '
-                  f'{event.event_info["sample_index"]} starting processing '
-                  f'at time {self.env.now}, amux is {self.amux}')
+            print(
+                f'At s&h unit {self.buffer_location}:{self.buffer_index}:{unit_index}, event {event.detection_event_info["event_number"]}, sample index '
+                f'{event.event_info["sample_index"]} starting processing '
+                f'at time {self.env.now}, amux is {self.amux}')
 
         yield self.env.timeout(self.sample_length)
 
         if self.debug:
-            print(f'At s&h unit {self.buffer_location}:{self.buffer_index}:{unit_index}, event {event.detection_event_info["event_number"]}, sample index'
-                  f'{event.event_info["sample_index"]} finished processing '
-                  f'at time {self.env.now}., amux is {self.amux}')
+            print(
+                f'At s&h unit {self.buffer_location}:{self.buffer_index}:{unit_index}, event {event.detection_event_info["event_number"]}, sample index'
+                f'{event.event_info["sample_index"]} finished processing '
+                f'at time {self.env.now}., amux is {self.amux}')
 
     def remove_from_buffer(self, event: DownstreamEvent, mux: 'AMUX'):
         """
@@ -68,9 +70,11 @@ class AnalogBuffer:
         if self.debug:
             print(f"At remove from buffer @ {self.buffer_location}:{self.buffer_index}")
         if mux is None:
-            event.event.fail(Exception(f"No downstream channels available at buffer located at {self.buffer_location}:{self.buffer_index}"))
+            event.event.fail(Exception(
+                f"No downstream channels available at buffer located at {self.buffer_location}:{self.buffer_index}"))
             if self.debug:
                 print("Event failed, no downstream mux found!")
+            return
         else:
             yield self.env.process(mux.entry_point(self.buffer_index, event))
 
@@ -88,6 +92,8 @@ class AnalogBuffer:
             yield self.env.timeout(self.chain_delay)  # Adding chaining delay overhead
 
         if self.debug:
-            print(f"call to remove from buf, amux is {self.amux}")
-
-        yield self.env.process(self.remove_from_buffer(event, self.amux))
+            print(f"call to remove from buf @ {self.buffer_location}:{self.buffer_index}, amux is {self.amux}")
+        try:
+            yield self.env.process(self.remove_from_buffer(event, self.amux))
+        except Exception as e:
+            print(f"Caught failed event {e}, simulation continues")

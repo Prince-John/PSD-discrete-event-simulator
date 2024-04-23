@@ -1,7 +1,14 @@
 import unittest
-from ..mixed_mode_simulator import sample_and_hold
-from ..mixed_mode_simulator import events
+import sys
+import os
+
+print(os.getcwd())
+print(sys.path)
+sys.path.insert(0, os.path.join(os.getcwd(), "mixed_mode_simulator"))
+print(sys.path)
 import simpy
+from mixed_mode_simulator import events
+from mixed_mode_simulator import sample_and_hold
 
 
 class MyTestCase(unittest.TestCase):
