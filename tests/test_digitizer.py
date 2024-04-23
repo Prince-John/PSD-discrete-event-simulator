@@ -1,7 +1,14 @@
 import unittest
-from ..mixed_mode_simulator import sample_and_hold
-from ..mixed_mode_simulator import events
+import sys
+import os
+
+print(os.getcwd())
+print(sys.path)
+sys.path.insert(0, os.path.join(os.getcwd(), "mixed_mode_simulator"))
+print(sys.path)
 import simpy
+from mixed_mode_simulator import events
+from mixed_mode_simulator import sample_and_hold
 
 
 class MyTestCase(unittest.TestCase):
@@ -9,7 +16,7 @@ class MyTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.env = simpy.Environment()
         self.buffer_length = 5
-        self.test_buffer = sample_and_hold.AnalogBuffer(self.env, 1, self.buffer_length, 0, debug=False)
+        self.test_buffer = sample_and_hold.AnalogBuffer(self.env, -1, "ring", 1, self.buffer_length, 0, debug=False)
         self.test_events = [events.DownstreamEvent(simpy.Event(self.env), {"event_number": 1, "scintillator": 1,
                                                                            "event_length": 1}, {"sample_index": i})
                             for i in range(10)]
