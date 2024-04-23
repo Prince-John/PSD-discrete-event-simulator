@@ -2,8 +2,8 @@ import math
 
 import simpy
 import itertools
-from .events import *
-from .sample_and_hold import AnalogBuffer
+from events import *
+from sample_and_hold import AnalogBuffer
 
 
 class Integrator:

@@ -5,12 +5,13 @@ from integrator import Integrator
 
 
 class Scintillator:
-    def __init__(self, env, mean_arrival_time, scintillator_delay, mean_event_length, num_events, scintillator_index,
-                 integrator: Integrator):
+    def __init__(self, env, mean_arrival_time, scintillator_delay, min_time_over_threshold, max_time_over_threshold,
+                 num_events, scintillator_index, integrator: Integrator):
+
         self.env = env
         self.mean_arrival_time = mean_arrival_time  # mean arrival time between any two events
         self.scintillator_delay = scintillator_delay  # time taken to notice event arrival in scintillator
-        self.mean_event_length = mean_event_length  # mean length of a single event
+        self.mean_event_length = (max_time_over_threshold + min_time_over_threshold)/2  # mean length of a single event
         self.num_events = num_events  # total number of synthetic events
         self.scintillator_index = scintillator_index  # index of scintillator
         self.integrator = integrator  # Integrator object that connects this scintillator to the next integrator

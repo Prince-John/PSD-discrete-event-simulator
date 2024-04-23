@@ -2,22 +2,46 @@ import argparse
 import json
 import sys
 
+import simpy
+
+import digitizer
+import sample_and_hold
+import amux
+import integrator
+import scintillator
+
 # Define the argument parser
 parser = argparse.ArgumentParser(description='Simulation setup for signal processing')
-parser.add_argument('--sample_length', type=int, help='Sample length', default=None)
-parser.add_argument('--ring_buffer_length', type=int, help='Ring buffer length', default=None)
-parser.add_argument('--ring_buffer_size', type=int, help='Ring buffer size', default=None)
-parser.add_argument('--ring_buffer_delay', type=int, help='Ring buffer delay', default=None)
-parser.add_argument('--integrator_delay', type=int, help='Integrator delay', default=None)
-parser.add_argument('--integrator_size', type=int, help='Integrator size', default=None)
-parser.add_argument('--sh_delay', type=int, help='S&H delay', default=None)
-parser.add_argument('--sh_size', type=int, help='S&H size', default=None)
-parser.add_argument('--poisson_delta', type=float, help='Poisson delta', default=None)
-parser.add_argument('--num_channels', type=int, help='Number of channels', default=None)
-parser.add_argument('--long_short_ratio', type=float, help='Long short ratio', default=None)
-parser.add_argument('--config_file', type=str, help='Path to JSON config file', default=None)
+# Configuration model design parameters
+parser.add_argument('--num_SnH_ring_buff', type=int, help='Number of S&H units in ring buffers', default=None)
+parser.add_argument('--num_channels', type=int, help='Number of front end channels', default=None)
+parser.add_argument('--num_SnH_long_buff', type=int, help='Number of S&H units in long tail buffers', default=None)
+parser.add_argument('--num_long_buffs', type=int, help='Number of long tail buffers', default=None)
+parser.add_argument('--num_of_digitizers', type=int, help='Number of digitizers', default=None)
+parser.add_argument('--amux_associativity', type=str, help='Description of how the AMUX connections can be routed. '
+                                                           'TBD, currently not used.', default=None)
 
-# Parse the command line arguments
+# Configuration model constants (with delays as floats)
+parser.add_argument('--short_SnH_delay', type=float, help='Short S&H unit delay length', default=None)
+parser.add_argument('--long_SnH_delay', type=float, help='Long S&H unit delay length', default=None)
+parser.add_argument('--mux0_delay', type=float, help='Delay length introduced by the first MUX', default=0)
+parser.add_argument('--mux1_delay', type=float, help='Delay length introduced by the second MUX', default=0)
+parser.add_argument('--integrator_delay', type=float, help='Delay length of the integrator. This also sets the '
+                                                           'granularity of the waveform resolution, since the gate '
+                                                           'delays will be much shorter than the integrator delay, '
+                                                           'this parameter combines both values.', default=0)
+parser.add_argument('--mean_arrival_time', type=float, help='Mean arrival time for simulated events', default=None)
+parser.add_argument('--scintillator_delay', type=float, help='Delay for the scintillator', default=None)
+parser.add_argument('--min_time_over_threshold', type=float, help='Minimum time over threshold for scintillator '
+                                                                  'detection', default=None)
+parser.add_argument('--max_time_over_threshold', type=float, help='Maximum time over threshold for scintillator '
+                                                                  'detection', default=None)
+parser.add_argument('--num_of_events', type=int, help='Number of simulated events', default=None)
+
+# Optional: Configuration file for overriding command line arguments
+parser.add_argument('--config_file', type=str, help='Path to JSON config file', default="default_config.json")
+
+# Parse the arguments
 args = parser.parse_args()
 
 # If a config file is specified, override the command line arguments with values from the config file
@@ -34,17 +58,47 @@ if args.config_file:
     except json.JSONDecodeError:
         print("Error: Invalid JSON format in the config file.")
         sys.exit(1)
+
+
 # Test code to print the variables
+
+def set_amux_for_all(mux: amux.AMUX, buffers: list) -> None:
+    """
+    Sets the AMUX pointer in each of the specified buffers to specified amux.
+
+    """
+    for buf in buffers:
+        buf.set_amux(mux)
+
+
 if __name__ == "__main__":
     print("Simulation Setup Variables:")
-    print(f"Sample Length: {args.sample_length}")
-    print(f"Ring Buffer Length: {args.ring_buffer_length}")
-    print(f"Ring Buffer Size: {args.ring_buffer_size}")
-    print(f"Ring Buffer Delay: {args.ring_buffer_delay}")
-    print(f"Integrator Delay: {args.integrator_delay}")
-    print(f"Integrator Size: {args.integrator_size}")
-    print(f"S&H Delay: {args.sh_delay}")
-    print(f"S&H Size: {args.sh_size}")
-    print(f"Poisson Delta: {args.poisson_delta}")
-    print(f"Number of Channels: {args.num_channels}")
-    print(f"Long Short Ratio: {args.long_short_ratio}")
+    print(json.dumps(config, indent=4))
+
+    env = simpy.Environment()
+    logger = None
+    digitizers = [digitizer.IdealDigitizer(env, logger, i) for i in range(args.num_of_digitizers)]
+    amux1 = amux.AMUX(env, args.num_long_buffs, digitizers, args.mux1_delay)
+    tail_buffers = [
+        sample_and_hold.AnalogBuffer(env, buffer_index=i, buffer_location="tail", sample_length=args.long_SnH_delay,
+                                     buffer_length=args.num_SnH_long_buff, chain_delay=0) for i in
+        range(args.num_long_buffs)]
+    set_amux_for_all(amux1, tail_buffers)
+    amux0 = amux.AMUX(env, channels=args.num_channels, downstream_buffers=tail_buffers, amux_delay=args.mux0_delay)
+    ring_buffers = [
+        sample_and_hold.AnalogBuffer(env, buffer_index=i, buffer_location="ring", sample_length=args.short_SnH_delay,
+                                     buffer_length=args.num_SnH_ring_buff, chain_delay=0) for i in
+        range(args.num_channels)]
+    set_amux_for_all(amux0, ring_buffers)
+    integrators = [
+        integrator.Integrator(env, ring_buffers[i], i, args.integrator_delay, sample_length=args.short_SnH_delay) for i
+        in range(args.num_channels)]
+    detectors = [
+        scintillator.Scintillator(env, args.mean_arrival_time, args.scintillator_delay, args.min_time_over_threshold,
+                                  args.max_time_over_threshold, args.num_of_events, i, integrators[i])
+        for i in range(args.num_channels)]
+
+    for detector in detectors:
+        detector.start_scintillator()
+
+    env.run()

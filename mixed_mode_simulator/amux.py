@@ -1,6 +1,6 @@
 import simpy
-from .events import *
-from .sample_and_hold import AnalogBuffer
+from events import *
+from sample_and_hold import AnalogBuffer
 
 
 class AMUX:
@@ -62,9 +62,9 @@ class AMUX:
             print(f'Event {event.detection_event_info["event_number"]}, sample number '
                   f'{event.event_info["sample_index"]} '
                   f'dropped. No downstream channels available')
-        event.event.fail(Exception(f'Event {event.detection_event_info["event_number"]}, sample number '
-                  f'{event.event_info["sample_index"]} '
-                  f'dropped. No downstream channels available'))
+        # #event.event.fail(Exception(f'Event {event.detection_event_info["event_number"]}, sample number '
+        #           f'{event.event_info["sample_index"]} '
+        #           f'dropped. No downstream channels available'))
 
     def entry_point(self, channel_index: int, event: DownstreamEvent):
 

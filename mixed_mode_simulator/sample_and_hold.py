@@ -2,13 +2,13 @@ from __future__ import annotations
 import simpy
 import itertools
 import numpy as np
-from .events import *
+from events import *
 
 
 class AnalogBuffer:
 
-    def __init__(self, env, buffer_index, buffer_location, sample_length, buffer_length, chain_delay,
-                 debug=False):
+    def __init__(self, env: simpy.Environment, buffer_index: int, buffer_location: str, sample_length: float, buffer_length: int, chain_delay: float,
+                 debug: bool = False) -> AnalogBuffer:
         """
         Creates an analog buffer with a parameterizable number of individual memory units and sample lengths.
         This class can be used to create both the long tail buffers and initial ring buffers.
