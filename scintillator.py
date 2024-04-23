@@ -2,11 +2,12 @@ import simpy
 import numpy as np
 
 class Scintillator:
-    def __init__(self, env, mean_arrival_time, scintillator_delay, mean_event_length, num_events, scintillator_index):
+    def __init__(self, env, mean_arrival_time, scintillator_delay, min_event_length, max_event_length, num_events, scintillator_index):
         self.env = env
         self.mean_arrival_time = mean_arrival_time  # mean arrival time between any two events
         self.scintillator_delay = scintillator_delay # time taken to notice event arrival in scintillator
-        self.mean_event_length = mean_event_length # mean length of a single event
+        self.min_event_length = min_event_length # min length of a single event
+        self.max_event_length = max_event_length # max length of a single event
         self.num_events = num_events # total number of synthetic events 
         self.scintillator_index = scintillator_index # index of scintillator
 
@@ -21,8 +22,8 @@ class Scintillator:
         # Generate arrival times using Poisson distribution
         arrival_times = np.random.poisson(self.mean_arrival_time, size=self.num_events)
 
-        # Generate event lengths from normal distribution
-        event_lengths = np.random.normal(self.mean_event_length, scale=self.mean_event_length, size=self.num_events)  # Adjust scale for desired standard deviation
+        # Generate event lengths using a uniform distribution with cutoff points
+        event_lengths = np.random.uniform(low=self.min_event_length, high=self.max_event_length, size=self.num_events)
         
         return arrival_times, event_lengths
 
@@ -63,7 +64,7 @@ if __name__ == '__main__':
     env = simpy.Environment()
 
     # Create a scintillator object
-    scintillator = Scintillator(env, 2, 90, 3, 10, 8)
+    scintillator = Scintillator(env, 2, 90, 0, 5, 10, 8)
 
     # Start the simulation
     scintillator.start_scintillator()
