@@ -1,7 +1,7 @@
 import simpy
 from .events import *
 from .sample_and_hold import AnalogBuffer
-from EventLogger import EventLogger
+from mixed_mode_simulator.event_logger import EventLogger
 
 class AMUX:
     def __init__(self, env: simpy.Environment, channels: int, downstream_buffers: list, logger: EventLogger, unitID = 0, amux_delay=0, debug=False):

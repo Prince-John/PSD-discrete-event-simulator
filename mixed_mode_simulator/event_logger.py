@@ -1,4 +1,4 @@
-from events import DetectionEvent, DownstreamEvent
+from .events import DetectionEvent, DownstreamEvent
 import simpy
 import csv
 import os  # Import os module to handle file directory operations
