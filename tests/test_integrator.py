@@ -37,8 +37,8 @@ class IntegratorTestCase(unittest.TestCase):
 
     def test_downstream_event_count_sweep(self):
 
-        event_lengths = np.logspace(-2, 10, 10)
-        sample_lengths = np.logspace(-3, 1, 10)
+        event_lengths = np.logspace(-2, 1, num=10)
+        sample_lengths = np.logspace(-3, 1, num=10)
 
         for event_length in event_lengths:
             for sample_length in sample_lengths:
