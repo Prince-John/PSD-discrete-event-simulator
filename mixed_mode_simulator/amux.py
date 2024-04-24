@@ -1,10 +1,10 @@
 import simpy
 from .events import *
 from .sample_and_hold import AnalogBuffer
-from mixed_mode_simulator.event_logger import EventLogger
+from mixed_mode_simulator.event_logger import event_logger
 
 class AMUX:
-    def __init__(self, env: simpy.Environment, channels: int, downstream_buffers: list, logger: EventLogger, unitID = 0, amux_delay=0, debug=False):
+    def __init__(self, env: simpy.Environment, channels: int, downstream_buffers: list, logger: event_logger, unitID = 0, amux_delay=0, debug=False):
         """
         Analog MUX simulation model. Takes in a list of downstream buffers and stores them in a Simpy Store FIFO.
         Downstream buffers are allocated until they are present in the FIFO. If FIFO is empty the entire event is

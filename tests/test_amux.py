@@ -4,6 +4,7 @@ import simpy
 from mixed_mode_simulator import amux
 from mixed_mode_simulator import events
 from mixed_mode_simulator import sample_and_hold
+from mixed_mode_simulator import event_logger
 import numpy as np
 
 class TestAMUX(TestCase):

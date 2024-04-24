@@ -1,6 +1,6 @@
 import simpy
 from events import DetectionEvent, DownstreamEvent
-from EventLogger import EventLogger
+from event_logger import EventLogger
 
 class RingBuffer:
     def __init__(self, env, buffer_length, sample_length, chain_delay_overhead, logger, unitID, debug=False):
