@@ -1,13 +1,14 @@
-from .events import DetectionEvent, DownstreamEvent
+from events import DetectionEvent, DownstreamEvent
 import simpy
 import csv
 import os  # Import os module to handle file directory operations
 
+
 class EventLogger:
-    def __init__(self, filename, env):
+    def __init__(self, filename, env, debug = True):
         self.env = env
         # Ensure the 'data' directory exists
-        self.directory = 'data'
+        self.directory = '../data'
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
         # Define the full path for the CSV file
@@ -15,8 +16,10 @@ class EventLogger:
         # Open the file in write mode
         self.file = open(self.full_path, 'w', newline='')
         self.writer = csv.writer(self.file)
-        self.writer.writerow(['eventID', 'state@end', 'location(locationIndex/ID)', 'eventSuccessValue(placeholder)'])
+        self.writer.writerow(['eventID', 'state@end', 'failure location(locationIndex/ID)', 'eventSuccessValue('
+                                                                                            'placeholder)'])
         self.lock = simpy.Resource(env, capacity=1)
+        self.debug = debug
 
     def log_event(self, component, unit_index, downstream_event: DownstreamEvent):
         """
@@ -27,15 +30,18 @@ class EventLogger:
         :param unit_index: Index or ID of the unit
         :param downstream_event: The downstream event being logged
         """
-        with self.lock.request() as req: #FOR ASYNCRONOUS LOGGING
-            yield req                    #FOR ASYNCRONOUS LOGGING
+        if self.debug:
+            print(f"{self.env.now:.3f}\t Logger Called by: {component}")
+
+        with self.lock.request() as req:  # FOR ASYNCRONOUS LOGGING
+            yield req  # FOR ASYNCRONOUS LOGGING
             event_id = downstream_event.detection_event_info['event_number']
             state_at_end = downstream_event.event.triggered  # Assuming 'event' in DownstreamEvent is a SimPy Event
             failure_location = f"{component}{unit_index}"
             event_success_value = 1  # Placeholder, can be changed as required
 
             self.writer.writerow([event_id, state_at_end, failure_location, event_success_value])
-    
+
     def close(self):
         """ Close the file """
         self.file.close()

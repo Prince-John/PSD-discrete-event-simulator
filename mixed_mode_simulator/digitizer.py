@@ -31,6 +31,7 @@ class IdealDigitizer:
                 f"{self.env.now:.3f}\tEvent successfully received: {downstream_event.detection_event_info}")  # Debug message
 
         # Log the event processing success
-        yield self.env.process(self.logger.log_event('Digitizer', self.unitID, downstream_event))
+        if downstream_event.final_event:
+            yield self.env.process(self.logger.log_event('Digitizer', self.unitID, downstream_event))
 
 
