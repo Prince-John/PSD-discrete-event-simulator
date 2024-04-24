@@ -1,10 +1,7 @@
 import unittest
-import sys
-import os
-
-import simpy
-from mixed_mode_simulator import events
 from mixed_mode_simulator import sample_and_hold
+from mixed_mode_simulator import events
+import simpy
 
 
 class MyTestCase(unittest.TestCase):

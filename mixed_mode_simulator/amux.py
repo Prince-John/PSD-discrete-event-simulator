@@ -1,10 +1,12 @@
 import simpy
 from events import *
 from sample_and_hold import AnalogBuffer
+from event_logger import EventLogger
 
 
 class AMUX:
-    def __init__(self, env: simpy.Environment, channels: int, downstream_buffers: list, amux_delay=0, debug=False):
+    def __init__(self, env: simpy.Environment, channels: int, downstream_buffers: list, logger: EventLogger, unitID=0,
+                 amux_delay=0, debug=False):
         """
         Analog MUX simulation model. Takes in a list of downstream buffers and stores them in a Simpy Store FIFO.
         Downstream buffers are allocated until they are present in the FIFO. If FIFO is empty the entire event is
@@ -19,7 +21,9 @@ class AMUX:
         :param downstream_buffers: List of Buffer objects that are downstream, digitizers emulate a single buffer object
         :param debug: Debug flag, default False
         """
+
         self.amux_delay = amux_delay
+        self.unitID = unitID
         self.env = env
         self.channels = channels
         self.active_channels = {}  # dict of type {channel_index: buffer_resource}
@@ -27,7 +31,7 @@ class AMUX:
         self.downstream_buffers = downstream_buffers
         self.downstream_buffer_fifo = simpy.Store(self.env, capacity=self.num_downstream_buffers)
         self.debug = debug
-
+        self.logger = logger
         self.fill_fifo(self.downstream_buffers)
 
     def fill_fifo(self, buffers: list[AnalogBuffer]):
@@ -64,6 +68,7 @@ class AMUX:
         # #event.event.fail(Exception(f'Event {event.detection_event_info["event_number"]}, sample number '
         #           f'{event.event_info["sample_index"]} '
         #           f'dropped. No downstream channels available'))
+        # self.logger.log_event()
 
     def entry_point(self, channel_index: int, event: DownstreamEvent):
 
@@ -75,6 +80,7 @@ class AMUX:
                 yield from self.accept_event(event, channel_index)
             except BufferError as e:
                 print("No buffers available, event dropped")
+
         elif channel_index in self.active_channels:
             """
             If from active channel, pass on to next downstream buffer.
@@ -82,7 +88,10 @@ class AMUX:
             self.accept_event(event, channel_index)
             if event.final_event:
                 if self.debug:
-                    print(f'{self.env.now:.3f}\tDownstream buffer {self.active_channels[channel_index]["buffer"].buffer_index} released at {self.env.now}')
+                    print(f'{self.env.now:.3f}\tDownstream buffer '
+                          f'{self.active_channels[channel_index]["buffer"].buffer_index} '
+                          f'released at {self.env.now}')
+                    yield self.env.process(self.logger.log_event('amux', self.unitID, event))
                 self.release_buffer(channel_index)
 
         else:
@@ -90,3 +99,4 @@ class AMUX:
             Not in active channel. Event is dropped. 
             """
             self.drop_event(event)
+            yield self.env.process(self.logger.log_event('amux', self.unitID, event))
