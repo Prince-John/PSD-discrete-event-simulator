@@ -1,11 +1,10 @@
 from unittest import TestCase
-from mixed_mode_simulator import sample_and_hold
-from mixed_mode_simulator import events
-from mixed_mode_simulator import amux
-from mixed_mode_simulator import event_logger
-import simpy
-import numpy as np
 
+import simpy
+from mixed_mode_simulator import amux
+from mixed_mode_simulator import events
+from mixed_mode_simulator import sample_and_hold
+import numpy as np
 
 class TestAMUX(TestCase):
 
@@ -43,24 +42,24 @@ class TestAMUX(TestCase):
 
         self.assertEqual(self.env.now, buffer_length + amux_delay + buffer_length)
 
-    # def test_entry_base_case_1_ring_1_tail(self):
-    #     """
-    #          Base case with delay = 1 for all, buf_length =1
-    #     """
-    #     with self.subTest(buffer_length=1, amux_delay=1):
-    #         self.run_simulation_1_ring_1_tail(1, 1, True)
-    #
-    # def test_entry_parameter_sweeps_1_ring_1_tail(self):
-    #     """
-    #           Iterates over desired parameter values and runs the simulation test for each.
-    #           """
-    #     buffer_lengths = [i for i in range(1, 10)]  # Example buffer lengths
-    #     amux_delays = [i for i in np.logspace(-1, 2, 10)]  # Example amux delays
-    #
-    #     for buffer_length in buffer_lengths:
-    #         for amux_delay in amux_delays:
-    #             with self.subTest(buffer_length=buffer_length, amux_delay=amux_delay):
-    #                 self.run_simulation_1_ring_1_tail(buffer_length, amux_delay, False)
+    def test_entry_base_case_1_ring_1_tail(self):
+        """
+             Base case with delay = 1 for all, buf_length =1
+        """
+        with self.subTest(buffer_length=1, amux_delay=1):
+            self.run_simulation_1_ring_1_tail(1, 1, True)
+
+    def test_entry_parameter_sweeps_1_ring_1_tail(self):
+        """
+              Iterates over desired parameter values and runs the simulation test for each.
+              """
+        buffer_lengths = [i for i in range(1, 10)]  # Example buffer lengths
+        amux_delays = [i for i in np.logspace(-1, 2, 10)]  # Example amux delays
+
+        for buffer_length in buffer_lengths:
+            for amux_delay in amux_delays:
+                with self.subTest(buffer_length=buffer_length, amux_delay=amux_delay):
+                    self.run_simulation_1_ring_1_tail(buffer_length, amux_delay, False)
 
     def over_allocation_helper(self):
 
@@ -77,19 +76,19 @@ class TestAMUX(TestCase):
         yield self.env.timeout(0.5)
         self.env.process(self.ring[0].buffer(test_events[0]))
 
-    # def test_over_allocation(self):
-    #
-    #     self.env.process(self.over_allocation_helper())
-    #
-    #     with self.assertRaises(Exception):
-    #         self.env.run()
+    def test_over_allocation(self):
+
+        self.env.process(self.over_allocation_helper())
+
+        with self.assertRaises(Exception):
+            self.env.run()
 
     def release_helper(self):
 
-        ring = [sample_and_hold.AnalogBuffer(self.env, i, "ring", 1, 3, 0, debug=True) for i
+        ring = [sample_and_hold.AnalogBuffer(self.env, i, "ring", 1, 4, 0, debug=True) for i
                 in range(3)]
 
-        tail_buffer = sample_and_hold.AnalogBuffer(self.env, 0, "tail", 1, 5, 0, debug=True)
+        tail_buffer = sample_and_hold.AnalogBuffer(self.env, 0, "tail", 1, 100, 0, debug=True)
         mux = amux.AMUX(self.env, 2, [tail_buffer], 0, debug=True)
         for buf in ring:
             buf.set_amux(mux)

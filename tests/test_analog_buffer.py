@@ -1,10 +1,11 @@
 import unittest
-from mixed_mode_simulator import sample_and_hold
-from mixed_mode_simulator import events
+
 import simpy
+from mixed_mode_simulator import events
+from mixed_mode_simulator import sample_and_hold
 
 
-class MyTestCase(unittest.TestCase):
+class TestBuffer(unittest.TestCase):
 
     def setUp(self) -> None:
         self.env = simpy.Environment()
