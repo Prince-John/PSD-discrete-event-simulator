@@ -9,6 +9,9 @@
 
 # function that takes downstream event, marks as successful, record if it receives detection even
 
+#look at downstream object, mark as successful
+import simpy 
+
 class IdealDigitizer:
   """
   Simulates an ideal digitizer with unlimited bandwidth and sampling rate.
