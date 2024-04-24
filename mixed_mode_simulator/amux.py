@@ -79,7 +79,8 @@ class AMUX:
                 self.active_channels[channel_index] = {"buffer": buffer}
                 yield from self.accept_event(event, channel_index)
             except BufferError as e:
-                print("No buffers available, event dropped")
+                print(f'{self.env.now:.3f} No buffers available, event {event.detection_event_info["event_number"]} '
+                      f'sample {event.event_info["sample_number"]} dropped')
 
         elif channel_index in self.active_channels:
             """

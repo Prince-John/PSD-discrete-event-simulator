@@ -80,6 +80,7 @@ class AnalogBuffer:
                 print(f'Event {event.detection_event_info["event_number"]}, sample {event.event_info["sample_index"]} '
                       f'is out of the tail buffer')
             self.downstream_events_processed += 1
+
         else:
             yield self.env.process(mux.entry_point(self.buffer_index, event))
 
