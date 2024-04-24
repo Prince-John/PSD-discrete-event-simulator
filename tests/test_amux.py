@@ -1,10 +1,12 @@
 from unittest import TestCase
 
-import simpy
+from mixed_mode_simulator import event_logger
 from mixed_mode_simulator import amux
 from mixed_mode_simulator import events
 from mixed_mode_simulator import sample_and_hold
+
 import numpy as np
+import simpy
 
 class TestAMUX(TestCase):
 
@@ -18,7 +20,9 @@ class TestAMUX(TestCase):
                                                                            "event_length": 1}, {"sample_index": i})
                             for i in range(10)]
         self.amux_delay = 0
-        self.mux = amux.AMUX(self.env, 3, self.buffers, self.amux_delay, debug=True)
+        self.amuxID = 0
+        self.Logger = event_logger.EventLogger('amux_testlog',self.env)
+        self.mux = amux.AMUX(self.env, 3, self.buffers, self.amux_delay, self.Logger,self.amuxID,  debug=True)
         self.ring = [sample_and_hold.AnalogBuffer(self.env, i, "ring", 1, self.buffer_length, 0, debug=True) for i
                      in range(3)]
         for buf in self.ring:
@@ -34,7 +38,7 @@ class TestAMUX(TestCase):
         test_event = events.DownstreamEvent(simpy.Event(self.env), {"event_number": 1, "scintillator": 1,
                                                                     "event_length": 1}, {"sample_index": 0})
 
-        self.env.process(ring_buffer.buffer(test_event))
+        self.env.process(ring_buffer.buffer_in(test_event))
         with self.assertRaises(Exception):
             self.env.run()
 
@@ -70,9 +74,9 @@ class TestAMUX(TestCase):
                                                                       "event_length": 1}, {"sample_index": 0})
                        for i in range(4)]
 
-        self.env.process(self.ring[1].buffer(test_events[1]))
+        self.env.process(self.ring[1].buffer_in(test_events[1]))
         yield self.env.timeout(0.5)
-        self.env.process(self.ring[0].buffer(test_events[0]))
+        self.env.process(self.ring[0].buffer_in(test_events[0]))
 
     def test_over_allocation(self):
 
@@ -86,7 +90,7 @@ class TestAMUX(TestCase):
         ring = [sample_and_hold.AnalogBuffer(self.env, i, "ring", 1, 4, 0, debug=True) for i
                 in range(3)]
 
-        tail_buffer = sample_and_hold.AnalogBuffer(self.env, 0, "tail", 1, 100, 0, debug=True)
+        tail_buffer = sample_and_hold.AnalogBuffer(self.env, 0, "tail", 1, 3, 0, debug=True)
         mux = amux.AMUX(self.env, 2, [tail_buffer], 0, debug=True)
         for buf in ring:
             buf.set_amux(mux)
@@ -100,13 +104,13 @@ class TestAMUX(TestCase):
 
         for buf in ring:
             print(f'for ring {buf.buffer_index} AMUX is {buf.amux}')
-        self.env.process(ring[1].buffer(test_events_0[1]))
+        self.env.process(ring[0].buffer_in(test_events_0[1]))
         yield self.env.timeout(1)
-        self.env.process(ring[1].buffer(test_events_1[1]))
+        self.env.process(ring[0].buffer_in(test_events_1[1]))
         yield self.env.timeout(5)
-        self.env.process(ring[0].buffer(test_events_0[0]))
+        self.env.process(ring[1].buffer_in(test_events_0[0]))
         yield self.env.timeout(1)
-        self.env.process(ring[0].buffer(test_events_1[0]))
+        self.env.process(ring[1].buffer_in(test_events_1[0]))
 
     def test_release(self):
         self.env = simpy.Environment()

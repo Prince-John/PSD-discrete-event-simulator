@@ -1,14 +1,7 @@
 import unittest
-import sys
-import os
-
-print(os.getcwd())
-print(sys.path)
-sys.path.insert(0, os.path.join(os.getcwd(), "mixed_mode_simulator"))
-print(sys.path)
-import simpy
-from mixed_mode_simulator import events
 from mixed_mode_simulator import sample_and_hold
+from mixed_mode_simulator import events
+import simpy
 
 
 class MyTestCase(unittest.TestCase):
@@ -22,7 +15,7 @@ class MyTestCase(unittest.TestCase):
                             for i in range(10)]
 
     def test_single_event(self):
-        self.env.process(self.test_buffer.buffer(self.test_events[0]))
+        self.env.process(self.test_buffer.buffer_in(self.test_events[0]))
         self.env.run()
         self.assertEqual(self.env.now, self.buffer_length)
 
@@ -32,7 +25,7 @@ class MyTestCase(unittest.TestCase):
         :return:
         """
         for i in range(num_events):
-            self.env.process(self.test_buffer.buffer(self.test_events[i]))
+            self.env.process(self.test_buffer.buffer_in(self.test_events[i]))
             yield self.env.timeout(1)
 
     def test_multiple_events(self):

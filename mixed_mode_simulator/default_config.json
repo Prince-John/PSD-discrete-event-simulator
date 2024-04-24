@@ -1,0 +1,18 @@
+{
+  "num_SnH_ring_buff": 4,
+  "num_channels": 2,
+  "num_SnH_long_buff": 8,
+  "num_long_buffs": 2,
+  "num_of_digitizers": 2,
+  "amux_associativity": "TBD",
+  "short_SnH_delay": 0.5,
+  "long_SnH_delay": 0.5,
+  "mux0_delay": 0.1,
+  "mux1_delay": 0.1,
+  "integrator_delay": 0,
+  "mean_arrival_time": 5,
+  "scintillator_delay": 0.01,
+  "min_time_over_threshold": 1,
+  "max_time_over_threshold": 100,
+  "num_of_events": 10
+}
