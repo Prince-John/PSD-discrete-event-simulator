@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Path to your Python script
+PYTHON_SCRIPT="python simulator_setup.py"
+
+# Default parameters
+DEFAULTS="--num_SnH_ring_buff=4 --num_SnH_long_buff=4 --num_long_buffs=2 --num_of_digitizers=1 --amux_associativity=TBD --short_SnH_delay=0.0000001 --long_SnH_delay=0.0000001 --mux0_delay=0 --mux1_delay=0 --integrator_delay=0 --scintillator_delay=0 --min_time_over_threshold=0.0000001 --max_time_over_threshold=0.0001 --num_of_events=10000"
+
+# Sweep parameters for num_channels and mean_arrival_time
+NUM_CHANNELS_VALUES=(2 4 8 16 32)
+MEAN_ARRIVAL_TIMES=(10 100 300 500 750 1000)
+
+# Loop over num_channels values
+for channels in "${NUM_CHANNELS_VALUES[@]}"
+do
+    # Loop over mean_arrival_time values
+    for arrival in "${MEAN_ARRIVAL_TIMES[@]}"
+    do
+        echo "Running simulation with num_channels=${channels} and mean_arrival_time=${arrival}"
+        $PYTHON_SCRIPT $DEFAULTS --num_channels=$channels --mean_arrival_time=$arrival --debug=True
+    done
+done
+
+echo "All simulations completed."
