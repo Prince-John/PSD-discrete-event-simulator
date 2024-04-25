@@ -32,7 +32,7 @@ class RingBuffer:
         sim_event.succeed()  # Mark the event as processed
         if self.debug:
             print(f"At s&h unit {unit_index}, completed processing at time {self.env.now}.")
-        yield from self.logger.log_event('Sample_and_Hold', self.unitID + str(unit_index), downstream_event)
+        yield from self.logger.log_event('Sample_and_Hold', False, self.unitID + str(unit_index), downstream_event)
 
     def run(self):
         for i in range(self.buffer_length):
@@ -47,7 +47,7 @@ class RingBuffer:
             delay_downstream_event = DownstreamEvent(delay_sim_event, detection_event.event_info, {"unit_process": "chaining_delay"})
             yield self.env.timeout(self.chain_delay_overhead)
             delay_sim_event.succeed()  # Mark the delay event as processed
-            yield from self.logger.log_event('Ring_Buffer', self.unitID + str(i), delay_downstream_event)
+            yield from self.logger.log_event('Ring_Buffer', False, self.unitID + str(i), delay_downstream_event)
 
 if __name__ == '__main__':
     env = simpy.Environment()

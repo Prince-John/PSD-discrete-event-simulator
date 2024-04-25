@@ -8,12 +8,12 @@ class Scintillator:
     def __init__(self, env, mean_arrival_time, scintillator_delay, min_time_over_threshold, max_time_over_threshold,
                  num_events, scintillator_index, integrator: Integrator, debug=False):
 
+        self.max_event_length = min_time_over_threshold
+        self.min_event_length = max_time_over_threshold
         self.debug = debug
         self.env = env
         self.mean_arrival_time = mean_arrival_time  # mean arrival time between any two events
         self.scintillator_delay = scintillator_delay  # time taken to notice event arrival in scintillator
-        self.mean_event_length = (
-                                             max_time_over_threshold + min_time_over_threshold) / 2  # mean length of a single event
         self.num_events = num_events  # total number of synthetic events
         self.scintillator_index = scintillator_index  # index of scintillator
         self.integrator = integrator  # Integrator object that connects this scintillator to the next integrator
@@ -27,11 +27,10 @@ class Scintillator:
 
         """
         # Generate arrival times using Poisson distribution
-        arrival_times = np.random.poisson(self.mean_arrival_time, size=self.num_events)
+        arrival_times = 1/np.random.poisson(self.mean_arrival_time, size=self.num_events)
 
-        # Generate event lengths from normal distribution
-        event_lengths = np.random.normal(self.mean_event_length, scale=self.mean_event_length / 2,
-                                         size=self.num_events)  # Adjust scale for desired standard deviation
+        # Generate event lengths using a uniform distribution with cutoff points
+        event_lengths = np.random.uniform(low=self.min_event_length, high=self.max_event_length, size=self.num_events)
 
         return arrival_times, event_lengths
 
@@ -46,8 +45,8 @@ class Scintillator:
         arrival_times, event_lengths = self.generate_timing()
         if self.debug:
             print(
-                f'{self.env.now:.3f}\tFor Scintillator {self.scintillator_index}: Arrival times{arrival_times}, Event '
-                f'Time over threshold {arrival_times}')
+                f'{self.env.now*1e6:.3f} us\tFor Scintillator {self.scintillator_index}: Arrival times{arrival_times}, Event '
+                f'Time over threshold {event_lengths}')
 
         for i in range(self.num_events):
             # Define event information
@@ -57,7 +56,7 @@ class Scintillator:
 
             # Schedule event with arrival time + scintillator delay
             if self.debug:
-                print(f'{self.env.now:.3f}\tEvent generated: {new_event.event_info}')
+                print(f'{self.env.now*1e6:.3f} us\tEvent generated: {new_event.event_info}')
 
             yield self.env.timeout(arrival_times[i] + self.scintillator_delay)
             # Send event to integrator process

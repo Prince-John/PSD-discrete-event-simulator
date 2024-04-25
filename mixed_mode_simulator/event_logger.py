@@ -21,7 +21,7 @@ class EventLogger:
         self.lock = simpy.Resource(env, capacity=1)
         self.debug = debug
 
-    def log_event(self, component, unit_index, downstream_event: DownstreamEvent):
+    def log_event(self, component, digitized, unit_index, downstream_event: DownstreamEvent):
         """
         Log an event to the CSV file using the DownstreamEvent object which contains
         a SimPy Event and related event information.
@@ -31,7 +31,7 @@ class EventLogger:
         :param downstream_event: The downstream event being logged
         """
         if self.debug:
-            print(f"{self.env.now:.3f}\t Logger Called by: {component}")
+            print(f"{self.env.now*1e6:.3f} us\t Logger Called by: {component}")
 
         with self.lock.request() as req:  # FOR ASYNCRONOUS LOGGING
             yield req  # FOR ASYNCRONOUS LOGGING

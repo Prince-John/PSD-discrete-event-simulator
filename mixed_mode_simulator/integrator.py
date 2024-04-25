@@ -38,12 +38,13 @@ class Integrator:
         for downstream_event_index in range(downstream_events):
             new_sample_event = DownstreamEvent(simpy.Event(self.env), detected_event.event_info,
                                                {"sample_index": downstream_event_index})
+
             yield self.env.timeout(self.sample_length)
             if self.debug:
                 print(
-                    f'{self.env.now:.3f}\tIn Integrator {self.integrator_index} with processed sample {downstream_event_index} for event {detected_event.event_info["event_number"]}')
+                    f'{self.env.now*1e6:.3f} us\tIn Integrator {self.integrator_index} with processed sample {downstream_event_index} for event {detected_event.event_info["event_number"]}')
 
             self.downstream_events_created += 1
-            yield self.env.process(self.ring_buffer.buffer_in(new_sample_event))
+            self.env.process(self.ring_buffer.buffer_in(new_sample_event))
 
         # detected_event.event.succeed(value=f'Detection Event {detected_event.event_info["event_number"]} completed')

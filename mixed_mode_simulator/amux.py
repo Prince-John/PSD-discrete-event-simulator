@@ -44,7 +44,7 @@ class AMUX:
             buffer = yield self.downstream_buffer_fifo.get()
 
             if self.debug:
-                print(f'{self.env.now:.3f}\tDownstream buffer {buffer.buffer_index} '
+                print(f'{self.env.now*1e6:.3f} us\tDownstream buffer {buffer.buffer_index} '
                       f'available for upstream channel {upstream_channel} and acquired at {self.env.now}')
             return buffer
         else:
@@ -62,7 +62,7 @@ class AMUX:
 
     def drop_event(self, event):
         if self.debug:
-            print(f'{self.env.now:.3f}\tEvent {event.detection_event_info["event_number"]}, sample number '
+            print(f'{self.env.now*1e6:.3f} us\tEvent {event.detection_event_info["event_number"]}, sample number '
                   f'{event.event_info["sample_index"]} '
                   f'dropped. No downstream channels available')
         # #event.event.fail(Exception(f'Event {event.detection_event_info["event_number"]}, sample number '
@@ -71,6 +71,10 @@ class AMUX:
         # self.logger.log_event()
 
     def entry_point(self, channel_index: int, event: DownstreamEvent):
+
+        if self.debug:
+            print(f'{self.env.now * 1e6:.3f} us\t AMUX:{self.unitID}, event {event.detection_event_info["event_number"]}'
+                  f':{event.event_info["sample_index"]} received')
 
         if event.event_info["sample_index"] == 0:
             yield self.env.timeout(self.amux_delay)
@@ -89,10 +93,10 @@ class AMUX:
             self.accept_event(event, channel_index)
             if event.final_event:
                 if self.debug:
-                    print(f'{self.env.now:.3f}\tDownstream buffer '
+                    print(f'{self.env.now*1e6:.3f} us\tDownstream buffer '
                           f'{self.active_channels[channel_index]["buffer"].buffer_index} '
                           f'released at {self.env.now}')
-                    yield self.env.process(self.logger.log_event('amux', self.unitID, event))
+                    yield self.env.process(self.logger.log_event('amux', False, self.unitID, event))
                 self.release_buffer(channel_index)
 
         else:
@@ -100,4 +104,4 @@ class AMUX:
             Not in active channel. Event is dropped. 
             """
             self.drop_event(event)
-            yield self.env.process(self.logger.log_event('amux', self.unitID, event))
+            yield self.env.process(self.logger.log_event('amux', False, self.unitID, event))
