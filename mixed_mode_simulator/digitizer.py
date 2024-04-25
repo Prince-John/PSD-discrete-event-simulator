@@ -33,7 +33,6 @@ class IdealDigitizer:
 
         # Log the event processing success
         if downstream_event.final_event:
-            yield self.env.process(self.logger.log_event('Digitizer', False, self.unitID, downstream_event))
-        yield self.env.process(self.logger.log_event('Digitizer', True, self.unitID, downstream_event))
+            yield self.env.process(self.logger.log_event('Digitizer', True, self.unitID, downstream_event))
 
         downstream_event.event.succeed()  # Mark the SimPy event as succeeded

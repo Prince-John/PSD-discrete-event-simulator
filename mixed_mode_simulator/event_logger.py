@@ -16,7 +16,7 @@ class EventLogger:
         # Open the file in write mode
         self.file = open(self.full_path, 'w', newline='')
         self.writer = csv.writer(self.file)
-        self.writer.writerow(['eventID', 'state@end', 'failure location(locationIndex/ID)', 'eventSuccessValue('
+        self.writer.writerow(['scintillatorID:eventID', 'state@end', 'failure location(locationIndex/ID)', 'eventSuccessValue('
                                                                                             'placeholder)'])
         self.lock = simpy.Resource(env, capacity=1)
         self.debug = debug
@@ -35,8 +35,9 @@ class EventLogger:
 
         with self.lock.request() as req:  # FOR ASYNCRONOUS LOGGING
             yield req  # FOR ASYNCRONOUS LOGGING
-            event_id = downstream_event.detection_event_info['event_number']
-            state_at_end = downstream_event.event.triggered  # Assuming 'event' in DownstreamEvent is a SimPy Event
+            event_id = f"{downstream_event.detection_event_info['scintillator']}:" \
+                       f"{downstream_event.detection_event_info['event_number']}"
+            state_at_end = digitized  # Assuming 'event' in DownstreamEvent is a SimPy Event
             failure_location = f"{component}{unit_index}"
             event_success_value = 1  # Placeholder, can be changed as required
 

@@ -65,10 +65,6 @@ class AMUX:
             print(f'{self.env.now*1e6:.3f} us\tEvent {event.detection_event_info["event_number"]}, sample number '
                   f'{event.event_info["sample_index"]} '
                   f'dropped. No downstream channels available')
-        # #event.event.fail(Exception(f'Event {event.detection_event_info["event_number"]}, sample number '
-        #           f'{event.event_info["sample_index"]} '
-        #           f'dropped. No downstream channels available'))
-        # self.logger.log_event()
 
     def entry_point(self, channel_index: int, event: DownstreamEvent):
 
@@ -87,21 +83,14 @@ class AMUX:
                       f'sample {event.event_info["sample_number"]} dropped')
 
         elif channel_index in self.active_channels:
-            """
-            If from active channel, pass on to next downstream buffer.
-            """
-            self.accept_event(event, channel_index)
+            yield from self.accept_event(event, channel_index)
             if event.final_event:
                 if self.debug:
                     print(f'{self.env.now*1e6:.3f} us\tDownstream buffer '
                           f'{self.active_channels[channel_index]["buffer"].buffer_index} '
                           f'released at {self.env.now}')
-                    yield self.env.process(self.logger.log_event('amux', False, self.unitID, event))
                 self.release_buffer(channel_index)
 
         else:
-            """
-            Not in active channel. Event is dropped. 
-            """
             self.drop_event(event)
             yield self.env.process(self.logger.log_event('amux', False, self.unitID, event))

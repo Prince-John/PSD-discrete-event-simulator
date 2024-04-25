@@ -38,7 +38,8 @@ class Integrator:
         for downstream_event_index in range(downstream_events):
             new_sample_event = DownstreamEvent(simpy.Event(self.env), detected_event.event_info,
                                                {"sample_index": downstream_event_index})
-
+            if downstream_event_index == downstream_events-1:
+                new_sample_event.final_event = True
             yield self.env.timeout(self.sample_length)
             if self.debug:
                 print(
