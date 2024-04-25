@@ -18,7 +18,7 @@ class IntegratorTestCase(unittest.TestCase):
 
         self.integrator = integrator.Integrator(self.env, self.test_ring, 0, 0, self.sample_length)
 
-    def test_downstream_event_count(self, event_length=10, sample_length=1):
+    def test_downstream_event_count(self, event_length=1e-6, sample_length=0.2e-6):
         """ Test if the correct number of downstream events are being generated given a test Detection Event."""
 
         test_event = events.DetectionEvent(simpy.Event(self.env),
