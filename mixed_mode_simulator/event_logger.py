@@ -7,7 +7,7 @@ import os  # Import os module to handle file directory operations
 
 
 class EventLogger:
-    def __init__(self, filename, env, config, debug=True):
+    def __init__(self, filename, env, config, debug=False):
         self.config = config
         self.env = env
         # Ensure the 'data' directory exists
