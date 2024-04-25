@@ -93,4 +93,5 @@ class AMUX:
 
         else:
             self.drop_event(event)
-            yield self.env.process(self.logger.log_event('amux', False, self.unitID, event))
+            if event.final_event:
+                yield self.env.process(self.logger.log_event('amux', False, self.unitID, event))

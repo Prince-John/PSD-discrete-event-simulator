@@ -87,7 +87,7 @@ if __name__ == "__main__":
         print("*" * 30, f'DEBUG LOG generated at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', "*" * 30)
 
     env = simpy.Environment()
-    logger = event_logger.EventLogger(f'events_log_{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', env, debug=True)
+    logger = event_logger.EventLogger(f'events_log_{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', env, config=config, debug=True)
     digitizers = [digitizer.IdealDigitizer(env, logger, i, debug=DEBUG) for i in range(args.num_of_digitizers)]
     amux1 = amux.AMUX(env, args.num_long_buffs, digitizers, args.mux1_delay, debug=DEBUG)
     tail_buffers = [
