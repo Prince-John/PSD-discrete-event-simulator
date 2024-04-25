@@ -1,6 +1,6 @@
 import simpy
 from events import DownstreamEvent
-from EventLogger import EventLogger  # Ensure this import path is correct based on your setup
+from .event_logger import EventLogger  # Ensure this import path is correct based on your setup
 
 class IdealDigitizer:
     def __init__(self, env, logger, unitID):
