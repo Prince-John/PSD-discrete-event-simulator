@@ -106,4 +106,5 @@ class AnalogBuffer:
             if not process_event.ok:
                 raise process_event.value  # Manually raise the exception if the process failed.
         except Exception as e:
-            print(f"{self.env.now*1e6:.3f} us\tCaught failed event {e}, simulation continues")
+            if self.debug:
+                print(f"{self.env.now*1e6:.3f} us\tCaught failed event {e}, simulation continues")
